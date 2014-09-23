@@ -1,0 +1,4 @@
+package: github.com/mattfarina/go-test-cli
+import:
+    - package: github.com/Masterminds/cookoo
+    - package: github.com/codegangsta/cli
