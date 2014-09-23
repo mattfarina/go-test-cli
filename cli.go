@@ -12,9 +12,11 @@ func main() {
 	// Setup Cookoo
 	reg, router, cxt := cookoo.Cookoo()
 
-	// A test route
+	// A test routes
 	reg.Route("version", "Print the version and exit.").
-		Does(showVersion, "_").Using("version").From("cxt:version")
+		Does(showVersion, "_").Using("version").From("cxt:version").
+		Route("version2", "Print the version and exit.").
+		Does(showVersion2, "_")
 
 	// Play with codegangsta/cli
 	app := cli.NewApp()
@@ -30,8 +32,8 @@ func main() {
 			Usage: "language for the greeting",
 		},
 	}
-	// try: go run cli.go test --version='foo'
 	app.Commands = []cli.Command{
+		// try: go run cli.go test --version='foo'
 		{
 			Name:      "test",
 			ShortName: "t",
@@ -44,6 +46,22 @@ func main() {
 				cli.StringFlag{
 					Name:  "version",
 					Value: "1.0.0-beta",
+					Usage: "specified string version",
+				},
+			},
+		},
+		// try: go run cli.go test2 --version='foo'
+		{
+			Name:  "test2",
+			Usage: "A test cookoo route",
+			Action: func(c *cli.Context) {
+				cxt.AddDatasource("cli-context", c)
+				router.HandleRequest("version2", cxt, false)
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "version",
+					Value: "1.0.0-alpha",
 					Usage: "specified string version",
 				},
 			},
@@ -117,6 +135,13 @@ func main() {
 
 func showVersion(c cookoo.Context, p *cookoo.Params) (interface{}, cookoo.Interrupt) {
 	version := p.Get("version", "0.1.0").(string)
+	fmt.Println(version)
+	return version, nil
+}
+
+func showVersion2(c cookoo.Context, p *cookoo.Params) (interface{}, cookoo.Interrupt) {
+	cliCxt := c.Datasource("cli-context").(*cli.Context)
+	version := cliCxt.String("version")
 	fmt.Println(version)
 	return version, nil
 }
